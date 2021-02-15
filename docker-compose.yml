@@ -1,0 +1,37 @@
+version: "3.8"
+services:
+  postgres:
+    image: postgres
+    container_name: postgres
+    cpu_count: 2
+    hostname: postgres
+    ports:
+      - "5431:5432"
+    environment:
+      POSTGRES_DB: calculation
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d calculation -U user"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+  calculator:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    environment:
+      HOST: "0.0.0.0"
+      PORT: 5001
+      USERNAME: user
+      PASSWORD: pass
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: calculation
+      DB_USERNAME: user
+      DB_PASSWORD: pass
+    ports:
+      - "5001:5001"
+    depends_on:
+      postgres:
+        condition: service_healthy
